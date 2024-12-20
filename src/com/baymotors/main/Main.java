@@ -76,13 +76,23 @@ public class Main {
         System.out.print("Enter Mechanic password: ");
         String password = scanner.nextLine();
 
-        if (username.equals(mechanic.getUsername()) && password.equals(mechanic.getPassword())) {
-            System.out.println("Mechanic login successful!");
-            showMechanicMenu(garageSystem, mechanic, scanner);
+        // Find the mechanic
+        Mechanic foundMechanic = garageSystem.findMechanicByUsername(username);
+        if (foundMechanic != null) {
+            System.out.println("Mechanic found: " + foundMechanic.getUsername());
+            if (foundMechanic.getPassword().equals(password)) {
+                System.out.println("Mechanic login successful!");
+                showMechanicMenu(garageSystem, foundMechanic, scanner);
+            } else {
+                System.out.println("Invalid password for Mechanic.");
+            }
         } else {
-            System.out.println("Invalid credentials for Mechanic.");
+            System.out.println("Mechanic with username " + username + " not found.");
         }
     }
+
+
+
 
     private static void showManagerMenu(GarageSystem garageSystem, Scanner scanner) {
         boolean exitManagerMenu = false;
@@ -244,7 +254,7 @@ public class Main {
         System.out.print("Enter Customer Name: ");
         String name = scanner.nextLine();
 
-        System.out.print("Is this customer already registered? (yes/no): ");
+        System.out.print("Do you want to register the customer? (yes/no): ");
         String registeredResponse = scanner.nextLine();
 
         if (registeredResponse.equalsIgnoreCase("yes")) {
@@ -254,13 +264,15 @@ public class Main {
             String phoneNumber = scanner.nextLine();
             Customer customer = new Customer(name, email, phoneNumber);
             garageSystem.addCustomer(customer);
-            System.out.println("Customer " + name + " has been added and registered.");
         } else {
+            System.out.print("Enter Customer Phone Number (required for notifications): ");
+            String phoneNumber = scanner.nextLine();
             Customer customer = new Customer(name);
+            customer.setPhoneNumber(phoneNumber);
             garageSystem.addCustomer(customer);
-            System.out.println("Customer " + name + " has been added as an unregistered customer.");
         }
     }
+
     private static void addVehicleByManager(GarageSystem garageSystem, Scanner scanner) {
         System.out.println("\n--- Add Vehicle ---");
         System.out.print("Enter Vehicle License Plate: ");
@@ -327,15 +339,23 @@ public class Main {
         System.out.print("Enter Vehicle License Plate: ");
         String licensePlate = scanner.nextLine();
         Vehicle vehicle = garageSystem.findVehicleByLicensePlate(licensePlate);
+
         if (vehicle != null) {
-            Task task = new Task(taskDetails, priority, vehicle);
-            garageSystem.addTask(task);
-            System.out.println("Task '" + taskDetails + "' allocated.");
-            System.out.println("Notification: Task assigned to mechanic for vehicle " + vehicle.getLicensePlate());
+            System.out.print("Enter Mechanic Username: ");
+            String mechanicUsername = scanner.nextLine();
+            Mechanic mechanic = garageSystem.findMechanicByUsername(mechanicUsername); // Add a method in GarageSystem to find a mechanic by username
+
+            if (mechanic != null) {
+                garageSystem.allocateTaskToMechanic(taskDetails, priority, vehicle, mechanic);
+            } else {
+                System.out.println("Mechanic not found!");
+            }
         } else {
             System.out.println("Vehicle not found!");
         }
     }
+
+
 
     private static void showMechanicMenu(GarageSystem garageSystem, Mechanic mechanic, Scanner scanner) {
         boolean exitMechanicMenu = false;

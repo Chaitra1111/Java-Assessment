@@ -45,6 +45,7 @@ public class Manager extends User {
                     System.out.println("Name: " + customer.getName());
                 }
             }
+            
 
             // Ask if the manager wants to register an unregistered customer
             System.out.println("\nDo you want to register an unregistered customer? (yes/no)");

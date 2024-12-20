@@ -35,7 +35,7 @@ public class Customer {
         this.name = name;
         this.email = email;
         this.phoneNumber = null;
-        this.isRegistered = true;
+        this.isRegistered = false;
     }
 
     // Validate name
@@ -65,13 +65,15 @@ public class Customer {
             System.out.println("Customer " + name + " is already registered.");
             return;
         }
-        validateEmail(email);
-        validatePhoneNumber(phoneNumber);
+        if (email != null && !email.isEmpty()) {
+            validateEmail(email);
+        }
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            validatePhoneNumber(phoneNumber);
+        }
         this.email = email;
         this.phoneNumber = phoneNumber;
         this.isRegistered = true;
-        System.out.println("Customer " + name + " is now registered.");
-        receiveNotification("Welcome, " + name + "! Thank you for registering with us.");
     }
 
     // Method to receive notifications
@@ -89,6 +91,11 @@ public class Customer {
                 System.out.println("No contact information available to notify " + name);
             }
         }
+    }
+    
+    public void setPhoneNumber(String phoneNumber) {
+        validatePhoneNumber(phoneNumber);
+        this.phoneNumber = phoneNumber;
     }
 
     // Register customer if not registered, will be called from the Manager class

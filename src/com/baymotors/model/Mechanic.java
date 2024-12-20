@@ -3,6 +3,8 @@ package com.baymotors.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.baymotors.util.ValidationUtil;
+
 public class Mechanic extends User {
 
     private List<Task> tasks; // List of tasks assigned to the mechanic
@@ -10,6 +12,9 @@ public class Mechanic extends User {
     // Constructor
     public Mechanic(String name, String email, String username, String password) {
         super(name, email, username, password);
+        if (!ValidationUtil.isValidEmail(email)) {
+            throw new IllegalArgumentException("Invalid email format: " + email);
+        }
         this.tasks = new ArrayList<>();
     }
 
@@ -66,25 +71,33 @@ public class Mechanic extends User {
 
     // Helper method to mark a task as completed and notify the customer
     private void markTaskAsCompleted(Task taskToComplete) {
-        taskToComplete.setStatus(Task.COMPLETED); // Use setStatus method instead of setCompleted
+        taskToComplete.setStatus(Task.COMPLETED); // Mark task as completed
         System.out.println("Task '" + taskToComplete.getTaskDetails() + "' marked as completed.");
 
         // Notify the customer
         Vehicle vehicle = taskToComplete.getVehicle();
         if (vehicle != null) {
+            System.out.println("Vehicle associated with the task: " + vehicle.getLicensePlate());
             Customer owner = vehicle.getOwner();
-            if (owner != null && owner.isRegistered()) {
-                // Send notification to the customer
-                Notification.sendNotification(owner.getEmail(), "Your vehicle is ready for pickup.");
-                System.out.println("Notification sent to customer: " + owner.getName() + " - Your vehicle is ready.");
+            if (owner != null) {
+                System.out.println("Customer associated with the vehicle: " + owner.getName());
+                if (owner.isRegistered()) {
+                    // Simulate notification display
+                    System.out.println("Notification: Dear " + owner.getName() + ", your vehicle is ready for pickup.");
+                } else {
+                    System.out.println("Customer " + owner.getName() + " is not registered.");
+                }
+            } else {
+                System.out.println("No customer associated with the vehicle.");
             }
         } else {
             System.out.println("No vehicle associated with the task.");
         }
 
-        // Optionally, move the completed task to a separate list for historical record
-        tasks.remove(taskToComplete); // You can change this to move to a "completed" list if needed
+        // Optionally remove the task from the list of pending tasks
+        tasks.remove(taskToComplete);
     }
+
 
     // Getter for tasks
     public List<Task> getTasks() {

@@ -14,9 +14,11 @@ public class GarageSystem {
     private final ArrayList<Customer> customers = new ArrayList<>();
     private final ArrayList<Vehicle> vehicles = new ArrayList<>();
     private final ArrayList<Task> tasks = new ArrayList<>();
+    private int taskIdCounter = 1;
     private final List<Mechanic> mechanics = new ArrayList<>();
     private final Map<Vehicle, Payment> vehiclePayments = new HashMap<>();
-    private final List<Offer> offers = new ArrayList<>(); // To store offers
+    @SuppressWarnings("unused")
+	private final List<Offer> offers = new ArrayList<>(); // To store offers
 
     // *** Manufacturer Methods ***
     public void addManufacturer(String manufacturerName) {
@@ -43,6 +45,17 @@ public class GarageSystem {
             System.out.println("Mechanic " + mechanic.getName() + " already exists in the system.");
         }
     }
+
+
+    public Mechanic findMechanicByUsername(String username) {
+        for (Mechanic mechanic : mechanics) {
+            if (mechanic.getUsername().equals(username)) {
+                return mechanic;
+            }
+        }
+        return null;
+    }
+
 
     // *** Part Supplier Methods ***
     public void addPartSupplier(String manufacturerName, String supplierName, String contactInfo) {
@@ -148,9 +161,10 @@ public class GarageSystem {
 
         if (owner == null) {
             // Create a new customer if not found
-            owner = new Customer(ownerName, ownerEmail, ownerPhoneNumber);
+        	owner = new Customer(ownerName); // Walk-in customer
+            owner.setPhoneNumber(ownerPhoneNumber); // Add phone number for notifications
             addCustomer(owner);
-            System.out.println("New customer " + ownerName + " has been added.");
+            System.out.println("New walk-in customer " + ownerName + " has been added.");
         } else {
             System.out.println("Existing customer " + ownerName + " found.");
         }
@@ -178,24 +192,32 @@ public class GarageSystem {
     }
 
     // *** Task Methods ***
-    public void createTaskForVehicle(Vehicle vehicle, String taskDetails) {
-        Task task = new Task(taskDetails, 1, vehicle); // Default priority: 1
-        tasks.add(task);
-        System.out.println("Task for vehicle " + vehicle.getLicensePlate() + " added: " + taskDetails);
+    
+    
+    public int getNextTaskId() {
+        return taskIdCounter++;
     }
 
-    public void addTask(Task task) {
+    public void addTask(String taskDetails, int priority, Vehicle vehicle) {
+        Task task = new Task(getNextTaskId(), taskDetails, priority, vehicle);
         tasks.add(task);
-        System.out.println("Task added to the system: " + task.getTaskDetails());
+        System.out.println("Task created: Task ID: " + task.getTaskId() + ", Details: " + taskDetails + ", Vehicle: " + vehicle.getLicensePlate());
     }
 
-    public void completeTask(Task task) {
-        if (task != null && task.getStatus().equals(Task.PENDING)) {
-            task.setStatus(Task.COMPLETED);
-            System.out.println("Task '" + task.getTaskDetails() + "' marked as completed.");
-        } else {
-            System.out.println("Task is either already completed or doesn't exist.");
+    public Task findTaskById(int taskId) {
+        for (Task task : tasks) {
+            if (task.getTaskId() == taskId) {
+                return task;
+            }
         }
+        System.out.println("Task with ID " + taskId + " not found.");
+        return null;
+    }
+
+    public void createTaskForVehicle(Vehicle vehicle, String taskDetails) {
+        Task task = new Task(getNextTaskId(), taskDetails, 1, vehicle); // Default priority: 1
+        tasks.add(task);
+        System.out.println("Task created: Task ID: " + task.getTaskId() + ", Details: " + taskDetails + ", Vehicle: " + vehicle.getLicensePlate());
     }
 
     public void viewTasks() {
@@ -204,20 +226,17 @@ public class GarageSystem {
         } else {
             System.out.println("Tasks in the system:");
             for (Task task : tasks) {
-                System.out.println("Task: " + task.getTaskDetails() + " for vehicle " +
-                        (task.getVehicle() != null ? task.getVehicle().getLicensePlate() : "None"));
+                System.out.println("Task ID: " + task.getTaskId() + ", Details: " + task.getTaskDetails() + ", Priority: " + task.getPriority() + ", Status: " + task.getStatus());
             }
         }
     }
 
-    public List<Task> getPendingTasks() {
-        List<Task> pendingTasks = new ArrayList<>();
-        for (Task task : tasks) {
-            if (!task.isCompleted()) {
-                pendingTasks.add(task);
-            }
-        }
-        return pendingTasks;
+    
+    public void allocateTaskToMechanic(String taskDetails, int priority, Vehicle vehicle, Mechanic mechanic) {
+        Task task = new Task(taskDetails, priority, vehicle);
+        tasks.add(task); // Add to central list
+        mechanic.addTask(task); // Assign to the mechanic
+        System.out.println("Task '" + taskDetails + "' assigned to mechanic: " + mechanic.getName());
     }
 
  // *** Payment Methods ***
